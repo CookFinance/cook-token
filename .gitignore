@@ -3,4 +3,4 @@
 .openzeppelin/dev-*.json
 .openzeppelin/.session
 node_modules
-+build/contracts
+build/contracts
