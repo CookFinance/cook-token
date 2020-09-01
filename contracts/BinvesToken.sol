@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/presets/ERC20PresetMinterPauser.sol";
 
-contract BinvesToken is ERC20, ERC20Burnable {
-    constructor(uint256 initialSupply) public ERC20("Binves", "BIN") {
-        _mint(msg.sender, initialSupply);
+contract BinvesToken is ERC20PresetMinterPauserUpgradeSafe {
+    function initialize(uint256 initialSupply) public initializer {
+        initialize("Binves", "BIN");
+        _mint(_msgSender(), initialSupply);
     }
 }
