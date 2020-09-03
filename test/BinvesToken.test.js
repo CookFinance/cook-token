@@ -2,22 +2,24 @@
 const { web3 } = require('@openzeppelin/test-environment');
 const { expect } = require('chai');
 const { Contracts, ProxyAdminProject, ZWeb3 } = require('@openzeppelin/upgrades');
-
-require('chai').use(require('chai-bignumber')());
+const { constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 
 describe('BinvesToken', function () {
   const initialSupply = '100000000000000000000000000';
   const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
   const MINTER_ROLE = web3.utils.soliditySha3('MINTER_ROLE');
   const PAUSER_ROLE = web3.utils.soliditySha3('PAUSER_ROLE');
+  const amount = '5000';
+  const { ZERO_ADDRESS } = constants;
 
   beforeEach(async function () {
     // Initialize OpenZeppelin upgrades
     ZWeb3.initialize(web3.currentProvider);
 
     // Create an OpenZeppelin project
-    const [binvesTeam] = await ZWeb3.eth.getAccounts();
+    const [binvesTeam, other] = await ZWeb3.eth.getAccounts();
     this.binvesTeam = binvesTeam;
+    this.other = other;
     this.project = new ProxyAdminProject('BinvesTokenProject', null, null, {binvesTeam});
 
     // Deploy a new BinvesToken contract
@@ -68,6 +70,21 @@ describe('BinvesToken', function () {
   it('Minter and pauser role admin is the default admin', async function () {
     expect(await this.contract.methods.getRoleAdmin(MINTER_ROLE).call()).to.equal(DEFAULT_ADMIN_ROLE);
     expect(await this.contract.methods.getRoleAdmin(PAUSER_ROLE).call()).to.equal(DEFAULT_ADMIN_ROLE);
+  });
+
+  describe('Minting', function () {
+    it('Deployer can mint tokens', async function () {
+      const receipt = await this.contract.methods.mint(this.other, amount).send({from: this.binvesTeam});
+      expectEvent(receipt, 'Transfer', { from: ZERO_ADDRESS, to: this.other, value: amount });
+      expect(await this.contract.methods.balanceOf(this.other).call()).to.be.bignumber.equal(amount);
+    });
+
+    it('Other accounts cannot mint tokens', async function () {
+      await expectRevert(
+        this.contract.methods.mint(this.other, amount).send({ from: this.other }),
+        'ERC20PresetMinterPauser: must have minter role to mint'
+      );
+    });
   });
 });
 
