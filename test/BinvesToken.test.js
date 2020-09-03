@@ -3,8 +3,13 @@ const { web3 } = require('@openzeppelin/test-environment');
 const { expect } = require('chai');
 const { Contracts, ProxyAdminProject, ZWeb3 } = require('@openzeppelin/upgrades');
 
+require('chai').use(require('chai-bignumber')());
+
 describe('BinvesToken', function () {
   const initialSupply = '100000000000000000000000000';
+  const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
+  const MINTER_ROLE = web3.utils.soliditySha3('MINTER_ROLE');
+  const PAUSER_ROLE = web3.utils.soliditySha3('PAUSER_ROLE');
 
   beforeEach(async function () {
     // Initialize OpenZeppelin upgrades
@@ -43,6 +48,26 @@ describe('BinvesToken', function () {
     // Make sure state in previous contract is kept
     const binvesTeamBalnce = await upgradedContract.methods.balanceOf(this.binvesTeam).call();
     expect(binvesTeamBalnce).to.equal(initialSupply);
+  });
+
+  it('Deployer has the default admin role', async function () {
+    expect(await this.contract.methods.getRoleMemberCount(DEFAULT_ADMIN_ROLE).call()).to.be.bignumber.equal('1');
+    expect(await this.contract.methods.getRoleMember(DEFAULT_ADMIN_ROLE, 0).call()).to.equal(this.binvesTeam);
+  });
+
+  it('Deployer has the minter role', async function () {
+    expect(await this.contract.methods.getRoleMemberCount(MINTER_ROLE).call()).to.be.bignumber.equal('1');
+    expect(await this.contract.methods.getRoleMember(MINTER_ROLE, 0).call()).to.equal(this.binvesTeam);
+  });
+
+  it('Deployer has the pauser role', async function () {
+    expect(await this.contract.methods.getRoleMemberCount(PAUSER_ROLE).call()).to.be.bignumber.equal('1');
+    expect(await this.contract.methods.getRoleMember(PAUSER_ROLE, 0).call()).to.equal(this.binvesTeam);
+  });
+
+  it('Minter and pauser role admin is the default admin', async function () {
+    expect(await this.contract.methods.getRoleAdmin(MINTER_ROLE).call()).to.equal(DEFAULT_ADMIN_ROLE);
+    expect(await this.contract.methods.getRoleAdmin(PAUSER_ROLE).call()).to.equal(DEFAULT_ADMIN_ROLE);
   });
 });
 

@@ -29,6 +29,7 @@
     "@openzeppelin/contracts-ethereum-package": "^3.0.0",
     "@openzeppelin/upgrades": "^2.8.0",
     "chai": "^4.2.0",
+    "chai-bignumber": "^3.0.0",
     "ganache-cli": "^6.10.1",
     "mocha": "^8.1.1",
     "web3": "^1.2.11"
