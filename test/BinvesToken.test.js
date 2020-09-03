@@ -13,19 +13,32 @@ describe('BinvesToken', function () {
     // Create an OpenZeppelin project
     const [binvesTeam] = await ZWeb3.eth.getAccounts();
     this.binvesTeam = binvesTeam;
-    const project = new ProxyAdminProject('BinvesTokenProject', null, null, {binvesTeam});
+    this.project = new ProxyAdminProject('BinvesTokenProject', null, null, {binvesTeam});
 
     // Deploy a new BinvesToken contract
     log('Creating an upgradeable instance of BinvesToken');
     const BinvesToken = Contracts.getFromLocal('BinvesToken');
-    this.contract = await project.createProxy(BinvesToken, {initArgs: [initialSupply]});
-    const address = this.contract.options.address;
-    log(`Contract created at ${address}`);
+    this.contract = await this.project.createProxy(BinvesToken, {initArgs: [initialSupply]});
+    this.address = this.contract.options.address;
+    log(`Contract created at ${this.address}`);
 
   });
 
   it('Contract owner should have all initial tokens', async function () {
-    expect(await this.contract.methods.balanceOf(this.binvesTeam).call()).to.equal(initialSupply);
+    const binvesTeamBalnce = await this.contract.methods.balanceOf(this.binvesTeam).call();
+    expect(binvesTeamBalnce).to.equal(initialSupply);
+  });
+
+  it('Contract should be upgradable', async function () {
+    // Upgrade the contract
+    log('Upgrading the contract');
+    const BinvesTokenForUpgradeTest = Contracts.getFromLocal('BinvesTokenForUpgradeTest');
+    const upgradedContract = await this.project.upgradeProxy(this.address, BinvesTokenForUpgradeTest);
+    log(`Contract upgraded at ${upgradedContract.options.address}`);
+
+    // Check new newFunctionAfterUpgrades method
+    const newFunctionAfterUpgradesReturnValue = await upgradedContract.methods.newFunctionAfterUpgrades().call();
+    expect(newFunctionAfterUpgradesReturnValue).to.equal(true);
   });
 });
 
