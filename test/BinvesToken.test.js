@@ -10,6 +10,7 @@ describe('BinvesToken', function () {
   const MINTER_ROLE = web3.utils.soliditySha3('MINTER_ROLE');
   const PAUSER_ROLE = web3.utils.soliditySha3('PAUSER_ROLE');
   const amount = '5000';
+  const burnAmount = '4999';
   const { ZERO_ADDRESS } = constants;
 
   beforeEach(async function () {
@@ -115,6 +116,17 @@ describe('BinvesToken', function () {
 
     it('Other accounts cannot pause', async function () {
       await expectRevert(this.contract.methods.pause().send({ from: this.other }), 'ERC20PresetMinterPauser: must have pauser role to pause');
+    });
+  });
+
+  describe('burning', function () {
+    it('holders can burn their tokens', async function () {
+      await this.contract.methods.mint(this.other, amount).send({ from: this.binvesTeam });
+
+      const receipt = await this.contract.methods.burn(burnAmount).send({ from: this.other });
+      expectEvent(receipt, 'Transfer', { from: this.other, to: ZERO_ADDRESS, value: burnAmount });
+
+      expect(await this.contract.methods.balanceOf(this.other).call()).to.be.bignumber.equal('1');
     });
   });
 });
