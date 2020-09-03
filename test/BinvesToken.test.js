@@ -86,6 +86,37 @@ describe('BinvesToken', function () {
       );
     });
   });
+
+  describe('Pausing', function () {
+    it('Deployer can pause', async function () {
+      const receipt = await this.contract.methods.pause().send({ from: this.binvesTeam });
+      expectEvent(receipt, 'Paused', { account: this.binvesTeam });
+
+      expect(await this.contract.methods.paused().call()).to.equal(true);
+    });
+
+    it('Deployer can unpause', async function () {
+      await this.contract.methods.pause().send({ from: this.binvesTeam });
+
+      const receipt = await this.contract.methods.unpause().send({ from: this.binvesTeam });
+      expectEvent(receipt, 'Unpaused', { account: this.binvesTeam });
+
+      expect(await this.contract.methods.paused().call()).to.equal(false);
+    });
+
+    it('Cannot mint while paused', async function () {
+      await this.contract.methods.pause().send({ from: this.binvesTeam });
+
+      await expectRevert(
+        this.contract.methods.mint(this.other, amount).send({ from: this.binvesTeam }),
+        'ERC20Pausable: token transfer while paused'
+      );
+    });
+
+    it('Other accounts cannot pause', async function () {
+      await expectRevert(this.contract.methods.pause().send({ from: this.other }), 'ERC20PresetMinterPauser: must have pauser role to pause');
+    });
+  });
 });
 
 
