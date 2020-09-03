@@ -39,6 +39,10 @@ describe('BinvesToken', function () {
     // Check new newFunctionAfterUpgrades method
     const newFunctionAfterUpgradesReturnValue = await upgradedContract.methods.newFunctionAfterUpgrades().call();
     expect(newFunctionAfterUpgradesReturnValue).to.equal(true);
+
+    // Make sure state in previous contract is kept
+    const binvesTeamBalnce = await upgradedContract.methods.balanceOf(this.binvesTeam).call();
+    expect(binvesTeamBalnce).to.equal(initialSupply);
   });
 });
 
