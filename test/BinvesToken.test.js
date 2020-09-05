@@ -423,6 +423,76 @@ describe('BinvesToken', function () {
       });
     });
   });
+
+  describe('Decrease allowance', function () {
+    describe('When the spender is not the zero address', function () {
+
+      function shouldDecreaseApproval (amount) {
+        describe('When there was no approved amount before', function () {
+          it('Reverts', async function () {
+            await expectRevert(this.contract.methods.decreaseAllowance(
+              this.other, amount).send({ from: this.binvesTeam }), 'ERC20: decreased allowance below zero'
+            );
+          });
+        });
+
+        describe('When the spender had an approved amount', function () {
+          const approvedAmount = amount;
+
+          beforeEach(async function () {
+            (this.receipt = await this.contract.methods.approve(this.other, approvedAmount).send({ from: this.binvesTeam }));
+          });
+
+          it('Emits an approval event', async function () {
+            const receipt = await this.contract.methods.decreaseAllowance(this.other, approvedAmount).send({ from: this.binvesTeam });
+
+            expectEvent(receipt, 'Approval', {
+              owner: this.binvesTeam,
+              spender: this.other,
+              value: new BN(0).toString(),
+            });
+          });
+
+          it('Decreases the spender allowance subtracting the requested amount', async function () {
+            await this.contract.methods.decreaseAllowance(this.other, new BN(approvedAmount).subn(1).toString()).send({ from: this.binvesTeam });
+
+            expect(await this.contract.methods.allowance(this.binvesTeam, this.other).call()).to.be.bignumber.equal('1');
+          });
+
+          it('Sets the allowance to zero when all allowance is removed', async function () {
+            await this.contract.methods.decreaseAllowance(this.other, approvedAmount).send({ from: this.binvesTeam });
+            expect(await this.contract.methods.allowance(this.binvesTeam, this.other).call()).to.be.bignumber.equal('0');
+          });
+
+          it('Reverts when more than the full allowance is removed', async function () {
+            await expectRevert(
+              this.contract.methods.decreaseAllowance(this.other, new BN(approvedAmount).addn(1).toString()).send({ from: this.binvesTeam }),
+              'ERC20: decreased allowance below zero'
+            );
+          });
+        });
+      }
+
+      describe('When the sender has enough balance', function () {
+        shouldDecreaseApproval(initialSupply);
+      });
+
+      describe('When the sender does not have enough balance', function () {
+        shouldDecreaseApproval(new BN(initialSupply).addn(1).toString());
+      });
+    });
+
+    describe('When the spender is the zero address', function () {
+      const amount = initialSupply;
+      const spender = ZERO_ADDRESS;
+
+      it('reverts', async function () {
+        await expectRevert(this.contract.methods.decreaseAllowance(
+          spender, amount).send({ from: this.binvesTeam }), 'ERC20: decreased allowance below zero'
+        );
+      });
+    });
+  });
 });
 
 
