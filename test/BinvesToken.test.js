@@ -576,6 +576,77 @@ describe('BinvesToken', function () {
       });
     });
   });
+
+  describe('_mint', function () {
+    const amount = new BN(50).toString();
+    it('Rejects a null account', async function () {
+      await expectRevert(
+        this.contract.methods.mint(ZERO_ADDRESS, amount).send({from: this.binvesTeam}), 'ERC20: mint to the zero address'
+      );
+    });
+
+    describe('For a non zero account', function () {
+      beforeEach('minting', async function () {
+        this.receipt = await this.contract.methods.mint(this.other, amount).send({from: this.binvesTeam});
+      });
+
+      it('Increments totalSupply', async function () {
+        const expectedSupply = new BN(initialSupply).add(new BN(amount)).toString();
+        expect(await this.contract.methods.totalSupply().call()).to.be.bignumber.equal(expectedSupply);
+      });
+
+      it('Increments recipient balance', async function () {
+        expect(await this.contract.methods.balanceOf(this.other).call()).to.be.bignumber.equal(amount);
+      });
+
+      it('Emits Transfer event', async function () {
+        expectEvent(this.receipt, 'Transfer', {
+          from: ZERO_ADDRESS,
+          to: this.other,
+          value: amount
+        });
+      });
+    });
+  });
+
+  describe('_burn', function () {
+
+    describe('For a non zero account', function () {
+      it('Rejects burning more than balance', async function () {
+        await expectRevert(this.contract.methods.burn(new BN(initialSupply).addn(1).toString()).send({from: this.binvesTeam}), 'ERC20: burn amount exceeds balance'
+        );
+      });
+
+      const describeBurn = function (description, amount) {
+        describe(description, function () {
+          beforeEach('Burning', async function () {
+            this.receipt = await this.contract.methods.burn(amount).send({from: this.binvesTeam});
+          });
+
+          it('Decrements totalSupply', async function () {
+            const expectedSupply = new BN(initialSupply).sub(new BN(amount)).toString();
+            expect(await this.contract.methods.totalSupply().call()).to.be.bignumber.equal(expectedSupply);
+          });
+
+          it('Decrements initialHolder balance', async function () {
+            const expectedBalance = new BN(initialSupply).sub(new BN(amount)).toString();
+            expect(await this.contract.methods.balanceOf(this.binvesTeam).call()).to.be.bignumber.equal(expectedBalance);
+          });
+
+          it('Emits Transfer event', async function () {
+            expectEvent(this.receipt, 'Transfer', {
+              from: this.binvesTeam,
+              to: ZERO_ADDRESS,
+              value: amount
+            });
+          });
+        });
+      };
+
+      describeBurn('For entire balance', initialSupply);
+      describeBurn('For less amount than balance', new BN(initialSupply).subn(1).toString());
+    });
+  });
 });
 
 
