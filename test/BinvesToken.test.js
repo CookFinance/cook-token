@@ -19,9 +19,10 @@ describe('BinvesToken', function () {
     ZWeb3.initialize(web3.currentProvider);
 
     // Create an OpenZeppelin project
-    const [binvesTeam, other] = await ZWeb3.eth.getAccounts();
+    const [binvesTeam, other, another] = await ZWeb3.eth.getAccounts();
     this.binvesTeam = binvesTeam;
     this.other = other;
+    this.another = another;
     this.project = new ProxyAdminProject('BinvesTokenProject', null, null, {binvesTeam});
 
     // Deploy a new BinvesToken contract
@@ -177,7 +178,7 @@ describe('BinvesToken', function () {
       describe('When te sender transfers all balance', function () {
         const amount = initialSupply;
 
-        it('transfers the requested amount', async function () {
+        it('Transfers the requested amount', async function () {
           await this.contract.methods.transfer(this.other, amount).send({from: this.binvesTeam});
 
           expect(await this.contract.methods.balanceOf(this.binvesTeam).call()).to.be.bignumber.equal('0');
@@ -195,10 +196,10 @@ describe('BinvesToken', function () {
         });
       });
 
-      describe('when the sender transfers zero tokens', function () {
+      describe('When the sender transfers zero tokens', function () {
         const amount = new BN('0').toString();
 
-        it('transfers the requested amount', async function () {
+        it('Transfers the requested amount', async function () {
           await this.contract.methods.transfer(this.other, amount).send({from: this.binvesTeam});
 
           expect(await this.contract.methods.balanceOf(this.binvesTeam).call()).to.be.bignumber.equal(initialSupply);
@@ -206,7 +207,7 @@ describe('BinvesToken', function () {
           expect(await this.contract.methods.balanceOf(this.other).call()).to.be.bignumber.equal('0');
         });
 
-        it('emits a transfer event', async function () {
+        it('Emits a transfer event', async function () {
           const receiopt = await this.contract.methods.transfer(this.other, amount).send({from: this.binvesTeam});
 
           expectEvent(receiopt, 'Transfer', {
@@ -214,6 +215,129 @@ describe('BinvesToken', function () {
             to: this.other,
             value: amount,
           });
+        });
+      });
+    });
+
+    describe('When the recipient is the zero address', function () {
+      it('Reverts', async function () {
+        await expectRevert(this.contract.methods.transfer(ZERO_ADDRESS, initialSupply).send({from: this.binvesTeam}),
+          `${errorPrefix}: transfer to the zero address`
+        );
+      });
+    });
+
+    describe('Tansfer from', function () {
+
+      describe('When the token owner is not the zero address', function () {
+
+        describe('When the recipient is not the zero address', function () {
+
+          describe('when the spender has enough approved balance', function () {
+            beforeEach(async function () {
+              await this.contract.methods.approve(this.other, initialSupply).send({ from: this.binvesTeam });
+            });
+
+            describe('When the token owner has enough balance', function () {
+              const amount = initialSupply;
+
+              it('Transfers the requested amount', async function () {
+                await this.contract.methods.transferFrom(this.binvesTeam, this.another, amount).send({ from: this.other });
+
+                expect(await this.contract.methods.balanceOf(this.binvesTeam).call()).to.be.bignumber.equal('0');
+
+                expect(await this.contract.methods.balanceOf(this.another).call()).to.be.bignumber.equal(amount);
+              });
+
+              it('Decreases the spender allowance', async function () {
+                await this.contract.methods.transferFrom(this.binvesTeam, this.another, amount).send({ from: this.other });
+
+                expect(await this.contract.methods.allowance(this.binvesTeam, this.other).call()).to.be.bignumber.equal('0');
+              });
+
+              it('Emits a transfer event', async function () {
+                const receipt = await this.contract.methods.transferFrom(this.binvesTeam, this.another, amount).send({ from: this.other });
+
+                expectEvent(receipt, 'Transfer', {
+                  from: this.binvesTeam,
+                  to: this.another,
+                  value: amount,
+                });
+              });
+
+              it('Emits an approval event', async function () {
+                const receipt = await this.contract.methods.transferFrom(this.binvesTeam, this.another, amount).send({ from: this.other });
+
+                expectEvent(receipt, 'Approval', {
+                  owner: this.binvesTeam,
+                  spender: this.other,
+                  value: await this.contract.methods.allowance(this.binvesTeam, this.other).call(),
+                });
+              });
+            });
+
+            describe('When the token owner does not have enough balance', function () {
+              const amount = new BN(initialSupply).addn(1).toString();
+
+              it('reverts', async function () {
+                await expectRevert(this.contract.methods.transferFrom(
+                  this.binvesTeam, this.another, amount).send({ from: this.other }), `${errorPrefix}: transfer amount exceeds balance`
+                );
+              });
+            });
+          });
+
+          describe('When the spender does not have enough approved balance', function () {
+            beforeEach(async function () {
+              await this.contract.methods.approve(this.other, new BN(initialSupply).subn(1).toString()).send({ from: this.binvesTeam });
+            });
+
+            describe('When the token owner has enough balance', function () {
+              const amount = initialSupply;
+
+              it('Reverts', async function () {
+                await expectRevert(this.contract.methods.transferFrom(
+                  this.binvesTeam, this.another, amount).send({ from: this.other }), `${errorPrefix}: transfer amount exceeds allowance`
+                );
+              });
+            });
+
+            describe('When the token owner does not have enough balance', function () {
+              const amount = new BN(initialSupply).addn(1).toString();
+
+              it('reverts', async function () {
+                await expectRevert(this.contract.methods.transferFrom(
+                  this.binvesTeam, this.another, amount).send({ from: this.other }), `${errorPrefix}: transfer amount exceeds balance`
+                );
+              });
+            });
+          });
+        });
+
+        describe('When the recipient is the zero address', function () {
+          const amount = initialSupply;
+          const to = ZERO_ADDRESS;
+
+          beforeEach(async function () {
+            await this.contract.methods.approve(this.other, amount).send({ from: this.binvesTeam });
+          });
+
+          it('Reverts', async function () {
+            await expectRevert(this.contract.methods.transferFrom(
+              this.binvesTeam, to, amount).send({ from: this.other }), `${errorPrefix}: transfer to the zero address`
+            );
+          });
+        });
+      });
+
+      describe('When the token owner is the zero address', function () {
+        const amount = 0;
+        const tokenOwner = ZERO_ADDRESS;
+
+        it('reverts', async function () {
+          await expectRevert(this.contract.methods.transferFrom(
+            tokenOwner, this.another, amount).send({ from: this.other }), `${errorPrefix}: transfer from the zero address`
+          );
         });
       });
     });
