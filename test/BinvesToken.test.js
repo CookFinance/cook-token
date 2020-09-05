@@ -341,6 +341,87 @@ describe('BinvesToken', function () {
         });
       });
     });
+
+    describe('Approve', function () {
+
+      describe('When the spender is not the zero address', function () {
+        describe('When the sender has enough balance', function () {
+          const amount = initialSupply;
+
+          it('Emits an approval event', async function () {
+            const receipt = await this.contract.methods.approve(this.other, amount).send({ from: this.binvesTeam });
+
+            expectEvent(receipt, 'Approval', {
+              owner: this.binvesTeam,
+              spender: this.other,
+              value: amount,
+            });
+          });
+
+          describe('When there was no approved amount before', function () {
+            it('Approves the requested amount', async function () {
+              await this.contract.methods.approve(this.other, amount).send({ from: this.binvesTeam });
+
+              expect(await this.contract.methods.allowance(this.binvesTeam, this.other).call()).to.be.bignumber.equal(amount);
+            });
+          });
+
+          describe('When the spender had an approved amount', function () {
+            beforeEach(async function () {
+              await this.contract.methods.approve(this.other, new BN(1).toString()).send({ from: this.binvesTeam });
+            });
+
+            it('approves the requested amount and replaces the previous one', async function () {
+              await this.contract.methods.approve(this.other, amount).send({ from: this.binvesTeam });
+
+              expect(await this.contract.methods.allowance(this.binvesTeam, this.other).call()).to.be.bignumber.equal(amount);
+            });
+          });
+        });
+
+        describe('When the sender does not have enough balance', function () {
+          const amount = new BN(initialSupply).addn(1).toString();
+
+          it('Emits an approval event', async function () {
+            const receipt = await this.contract.methods.approve(this.other, amount).send({ from: this.binvesTeam });
+
+            expectEvent(receipt, 'Approval', {
+              owner: this.binvesTeam,
+              spender: this.other,
+              value: amount,
+            });
+          });
+
+          describe('When there was no approved amount before', function () {
+            it('Approves the requested amount', async function () {
+              await this.contract.methods.approve(this.other, amount).send({ from: this.binvesTeam });
+
+              expect(await this.contract.methods.allowance(this.binvesTeam, this.other).call()).to.be.bignumber.equal(amount);
+            });
+          });
+
+          describe('When the spender had an approved amount', function () {
+            beforeEach(async function () {
+              await this.contract.methods.approve(this.other, new BN(1).toString()).send({ from: this.binvesTeam });
+            });
+
+            it('Approves the requested amount and replaces the previous one', async function () {
+              await this.contract.methods.approve(this.other, amount).send({ from: this.binvesTeam });
+
+              expect(await this.contract.methods.allowance(this.binvesTeam, this.other).call()).to.be.bignumber.equal(amount);
+            });
+          });
+        });
+      });
+
+      describe('When the spender is the zero address', function () {
+        it('Reverts', async function () {
+          await expectRevert(this.contract.methods.approve(ZERO_ADDRESS, initialSupply).send({ from: this.binvesTeam }),
+            `${errorPrefix}: approve to the zero address`
+          );
+        });
+      });
+    });
   });
 });
 
