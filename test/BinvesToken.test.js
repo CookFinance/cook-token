@@ -2,7 +2,7 @@
 const { web3 } = require('@openzeppelin/test-environment');
 const { expect } = require('chai');
 const { Contracts, ProxyAdminProject, ZWeb3 } = require('@openzeppelin/upgrades');
-const { constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
+const { BN, constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 
 describe('BinvesToken', function () {
   const initialSupply = '100000000000000000000000000';
@@ -11,7 +11,8 @@ describe('BinvesToken', function () {
   const PAUSER_ROLE = web3.utils.soliditySha3('PAUSER_ROLE');
   const amount = '5000';
   const burnAmount = '4999';
-  const { ZERO_ADDRESS } = constants;
+  const {ZERO_ADDRESS} = constants;
+  const errorPrefix = 'ERC20';
 
   beforeEach(async function () {
     // Initialize OpenZeppelin upgrades
@@ -162,6 +163,61 @@ describe('BinvesToken', function () {
     });
   });
 
+  describe('Transfer', function () {
+    describe('When the recipient is not the zero address', function () {
+      describe('When the sender does not have enough balance', function () {
+        const amount = new BN(initialSupply).addn(1).toString();
+        it('Reverts', async function () {
+          await expectRevert(this.contract.methods.transfer(this.other, amount).send({from: this.binvesTeam}),
+            `${errorPrefix}: transfer amount exceeds balance`
+          );
+        });
+      });
+
+      describe('When te sender transfers all balance', function () {
+        const amount = initialSupply;
+
+        it('transfers the requested amount', async function () {
+          await this.contract.methods.transfer(this.other, amount).send({from: this.binvesTeam});
+
+          expect(await this.contract.methods.balanceOf(this.binvesTeam).call()).to.be.bignumber.equal('0');
+
+          expect(await this.contract.methods.balanceOf(this.other).call()).to.be.bignumber.equal(amount);
+        });
+
+        it('Emits a transfer event', async function () {
+          const receiopt = await this.contract.methods.transfer(this.other, amount).send({from: this.binvesTeam});
+          expectEvent(receiopt, 'Transfer', {
+            from: this.binvesTeam,
+            to: this.other,
+            value: amount,
+          });
+        });
+      });
+
+      describe('when the sender transfers zero tokens', function () {
+        const amount = new BN('0').toString();
+
+        it('transfers the requested amount', async function () {
+          await this.contract.methods.transfer(this.other, amount).send({from: this.binvesTeam});
+
+          expect(await this.contract.methods.balanceOf(this.binvesTeam).call()).to.be.bignumber.equal(initialSupply);
+
+          expect(await this.contract.methods.balanceOf(this.other).call()).to.be.bignumber.equal('0');
+        });
+
+        it('emits a transfer event', async function () {
+          const receiopt = await this.contract.methods.transfer(this.other, amount).send({from: this.binvesTeam});
+
+          expectEvent(receiopt, 'Transfer', {
+            from: this.binvesTeam,
+            to: this.other,
+            value: amount,
+          });
+        });
+      });
+    });
+  });
 });
 
 
@@ -170,4 +226,4 @@ function log() {
   if (process.env.NODE_ENV !== 'test') {
     console.log.apply(this, arguments)
   }
-}
+};
