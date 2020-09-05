@@ -129,6 +129,39 @@ describe('BinvesToken', function () {
       expect(await this.contract.methods.balanceOf(this.other).call()).to.be.bignumber.equal('1');
     });
   });
+
+  it('Has a name', async function () {
+    expect(await this.contract.methods.name().call()).to.equal("Binves");
+  });
+
+  it('has a symbol', async function () {
+    expect(await this.contract.methods.symbol().call()).to.equal("BIN");
+  });
+
+  it('has 18 decimals', async function () {
+    expect(await this.contract.methods.decimals().call()).to.be.bignumber.equal('18');
+  });
+
+  describe('Total supply', function () {
+    it('returns the total amount of tokens', async function () {
+      expect(await this.contract.methods.totalSupply().call()).to.be.bignumber.equal(initialSupply);
+    });
+  });
+
+  describe('BalanceOf', function () {
+    describe('When the requested account has no tokens', function () {
+      it('Returns zero', async function () {
+        expect(await this.contract.methods.balanceOf(this.other).call()).to.be.bignumber.equal('0');
+      });
+    });
+
+    describe('When the requested account has some tokens', function () {
+      it('Returns the total amount of tokens', async function () {
+        expect(await this.contract.methods.balanceOf(this.binvesTeam).call()).to.be.bignumber.equal(initialSupply);
+      });
+    });
+  });
+
 });
 
 
