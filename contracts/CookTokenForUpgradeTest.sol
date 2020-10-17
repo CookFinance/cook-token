@@ -3,9 +3,9 @@
 pragma solidity ^0.6.0;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/presets/ERC20PresetMinterPauser.sol";
-import "./BinvesToken.sol";
+import "./CookToken.sol";
 
-contract BinvesTokenForUpgradeTest is BinvesToken {
+contract CookTokenForUpgradeTest is CookToken {
 
     function newFunctionAfterUpgrades() public returns (bool){
         return true;

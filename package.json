@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha --timeout 10000 --exit --recursive test"
+    "test": "oz compile && mocha --timeout 10000 --exit --recursive test"
   },
   "repository": {
     "type": "git",

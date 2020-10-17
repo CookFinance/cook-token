@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const { Contracts, ProxyAdminProject, ZWeb3 } = require('@openzeppelin/upgrades');
 const { BN, constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 
-describe('BinvesToken', function () {
+describe('CookToken', function () {
   const initialSupply = '100000000000000000000000000';
   const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
   const MINTER_ROLE = web3.utils.soliditySha3('MINTER_ROLE');
@@ -23,12 +23,12 @@ describe('BinvesToken', function () {
     this.binvesTeam = binvesTeam;
     this.other = other;
     this.another = another;
-    this.project = new ProxyAdminProject('BinvesTokenProject', null, null, {binvesTeam});
+    this.project = new ProxyAdminProject('CookTokenProject', null, null, {binvesTeam});
 
-    // Deploy a new BinvesToken contract
-    log('Creating an upgradeable instance of BinvesToken');
-    const BinvesToken = Contracts.getFromLocal('BinvesToken');
-    this.contract = await this.project.createProxy(BinvesToken, {initArgs: [initialSupply]});
+    // Deploy a new CookToken contract
+    log('Creating an upgradeable instance of CookToken');
+    const CookToken = Contracts.getFromLocal('CookToken');
+    this.contract = await this.project.createProxy(CookToken, {initArgs: [initialSupply]});
     this.address = this.contract.options.address;
     log(`Contract created at ${this.address}`);
 
@@ -42,8 +42,8 @@ describe('BinvesToken', function () {
   it('Contract should be upgradable', async function () {
     // Upgrade the contract
     log('Upgrading the contract');
-    const BinvesTokenForUpgradeTest = Contracts.getFromLocal('BinvesTokenForUpgradeTest');
-    const upgradedContract = await this.project.upgradeProxy(this.address, BinvesTokenForUpgradeTest);
+    const CookTokenForUpgradeTest = Contracts.getFromLocal('CookTokenForUpgradeTest');
+    const upgradedContract = await this.project.upgradeProxy(this.address, CookTokenForUpgradeTest);
     log(`Contract upgraded at ${upgradedContract.options.address}`);
 
     // Check new newFunctionAfterUpgrades method
@@ -133,11 +133,11 @@ describe('BinvesToken', function () {
   });
 
   it('Has a name', async function () {
-    expect(await this.contract.methods.name().call()).to.equal("Binves");
+    expect(await this.contract.methods.name().call()).to.equal("Cook");
   });
 
   it('has a symbol', async function () {
-    expect(await this.contract.methods.symbol().call()).to.equal("BIN");
+    expect(await this.contract.methods.symbol().call()).to.equal("COK");
   });
 
   it('has 18 decimals', async function () {
