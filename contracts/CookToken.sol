@@ -258,4 +258,20 @@ contract CookToken {
 
     /// @notice The standard EIP-20 approval event
     event Approval(address indexed owner, address indexed spender, uint256 amount);
+
+    /**
+     * @notice Construct a new Cook token
+     * @param account The initial account to grant all the tokens
+     * @param minter_ The account with minting ability
+     * @param mintingAllowedAfter_ The timestamp after which minting may occur
+     */
+    constructor(address account, address minter_, uint mintingAllowedAfter_) public {
+        require(mintingAllowedAfter_ >= block.timestamp, "Uni::constructor: minting can only begin after deployment");
+
+        balances[account] = uint96(totalSupply);
+        emit Transfer(address(0), account, totalSupply);
+        minter = minter_;
+        emit MinterChanged(address(0), minter);
+        mintingAllowedAfter = mintingAllowedAfter_;
+    }
 }
