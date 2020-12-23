@@ -445,4 +445,14 @@ contract CookToken {
         require(now <= expiry, "Cook::delegateBySig: signature expired");
         return _delegate(signatory, delegatee);
     }
+
+    /**
+     * @notice Gets the current votes balance for `account`
+     * @param account The address to get votes balance
+     * @return The number of current votes for `account`
+     */
+    function getCurrentVotes(address account) external view returns (uint96) {
+        uint32 nCheckpoints = numCheckpoints[account];
+        return nCheckpoints > 0 ? checkpoints[account][nCheckpoints - 1].votes : 0;
+    }
 }
