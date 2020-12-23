@@ -212,10 +212,10 @@ contract Cook {
     uint8 public constant mintCap = 2;
 
     /// @notice Allowance amounts on behalf of others
-    mapping (address => mapping (address => uint96)) internal allowances;
+    mapping (address => mapping (address => uint128)) internal allowances;
 
     /// @notice Official record of token balances for each account
-    mapping (address => uint96) internal balances;
+    mapping (address => uint128) internal balances;
 
     /// @notice A record of each accounts delegate
     mapping (address => address) public delegates;
@@ -223,7 +223,7 @@ contract Cook {
     /// @notice A checkpoint for marking number of votes from a given block
     struct Checkpoint {
         uint32 fromBlock;
-        uint96 votes;
+        uint128 votes;
     }
 
     /// @notice A record of votes checkpoints for each account, by index
@@ -268,7 +268,7 @@ contract Cook {
     constructor(address account, address minter_, uint mintingAllowedAfter_) public {
         require(mintingAllowedAfter_ >= block.timestamp, "Cook::constructor: minting can only begin after deployment");
 
-        balances[account] = uint96(totalSupply);
+        balances[account] = uint128(totalSupply);
         emit Transfer(address(0), account, totalSupply);
         minter = minter_;
         emit MinterChanged(address(0), minter);
@@ -299,12 +299,12 @@ contract Cook {
         mintingAllowedAfter = SafeMath.add(block.timestamp, minimumTimeBetweenMints);
 
         // mint the amount
-        uint96 amount = safe96(rawAmount, "Cook::mint: amount exceeds 96 bits");
+        uint128 amount = safe128(rawAmount, "Cook::mint: amount exceeds 128 bits");
         require(amount <= SafeMath.div(SafeMath.mul(totalSupply, mintCap), 100), "Cook::mint: exceeded mint cap");
-        totalSupply = safe96(SafeMath.add(totalSupply, amount), "Cook::mint: totalSupply exceeds 96 bits");
+        totalSupply = safe128(SafeMath.add(totalSupply, amount), "Cook::mint: totalSupply exceeds 128 bits");
 
         // transfer the amount to the recipient
-        balances[dst] = add96(balances[dst], amount, "Cook::mint: transfer amount overflows");
+        balances[dst] = add128(balances[dst], amount, "Cook::mint: transfer amount overflows");
         emit Transfer(address(0), dst, amount);
 
         // move delegates
@@ -330,11 +330,11 @@ contract Cook {
      * @return Whether or not the approval succeeded
      */
     function approve(address spender, uint rawAmount) external returns (bool) {
-        uint96 amount;
+        uint128 amount;
         if (rawAmount == uint(-1)) {
-            amount = uint96(-1);
+            amount = uint128(-1);
         } else {
-            amount = safe96(rawAmount, "Cook::approve: amount exceeds 96 bits");
+            amount = safe128(rawAmount, "Cook::approve: amount exceeds 128 bits");
         }
 
         allowances[msg.sender][spender] = amount;
@@ -354,11 +354,11 @@ contract Cook {
      * @param s Half of the ECDSA signature pair
      */
     function permit(address owner, address spender, uint rawAmount, uint deadline, uint8 v, bytes32 r, bytes32 s) external {
-        uint96 amount;
+        uint128 amount;
         if (rawAmount == uint(-1)) {
-            amount = uint96(-1);
+            amount = uint128(-1);
         } else {
-            amount = safe96(rawAmount, "Cook::permit: amount exceeds 96 bits");
+            amount = safe128(rawAmount, "Cook::permit: amount exceeds 128 bits");
         }
 
         bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainId(), address(this)));
@@ -390,7 +390,7 @@ contract Cook {
      * @return Whether or not the transfer succeeded
      */
     function transfer(address dst, uint rawAmount) external returns (bool) {
-        uint96 amount = safe96(rawAmount, "Cook::transfer: amount exceeds 96 bits");
+        uint128 amount = safe128(rawAmount, "Cook::transfer: amount exceeds 128 bits");
         _transferTokens(msg.sender, dst, amount);
         return true;
     }
@@ -404,11 +404,11 @@ contract Cook {
      */
     function transferFrom(address src, address dst, uint rawAmount) external returns (bool) {
         address spender = msg.sender;
-        uint96 spenderAllowance = allowances[src][spender];
-        uint96 amount = safe96(rawAmount, "Cook::approve: amount exceeds 96 bits");
+        uint128 spenderAllowance = allowances[src][spender];
+        uint128 amount = safe128(rawAmount, "Cook::approve: amount exceeds 128 bits");
 
-        if (spender != src && spenderAllowance != uint96(-1)) {
-            uint96 newAllowance = sub96(spenderAllowance, amount, "Cook::transferFrom: transfer amount exceeds spender allowance");
+        if (spender != src && spenderAllowance != uint128(-1)) {
+            uint128 newAllowance = sub128(spenderAllowance, amount, "Cook::transferFrom: transfer amount exceeds spender allowance");
             allowances[src][spender] = newAllowance;
 
             emit Approval(src, spender, newAllowance);
@@ -451,7 +451,7 @@ contract Cook {
      * @param account The address to get votes balance
      * @return The number of current votes for `account`
      */
-    function getCurrentVotes(address account) external view returns (uint96) {
+    function getCurrentVotes(address account) external view returns (uint128) {
         uint32 nCheckpoints = numCheckpoints[account];
         return nCheckpoints > 0 ? checkpoints[account][nCheckpoints - 1].votes : 0;
     }
@@ -463,7 +463,7 @@ contract Cook {
      * @param blockNumber The block number to get the vote balance at
      * @return The number of votes the account had as of the given block
      */
-    function getPriorVotes(address account, uint blockNumber) public view returns (uint96) {
+    function getPriorVotes(address account, uint blockNumber) public view returns (uint128) {
         require(blockNumber < block.number, "Cook::getPriorVotes: not yet determined");
 
         uint32 nCheckpoints = numCheckpoints[account];
@@ -499,7 +499,7 @@ contract Cook {
 
     function _delegate(address delegator, address delegatee) internal {
         address currentDelegate = delegates[delegator];
-        uint96 delegatorBalance = balances[delegator];
+        uint128 delegatorBalance = balances[delegator];
         delegates[delegator] = delegatee;
 
         emit DelegateChanged(delegator, currentDelegate, delegatee);
@@ -507,36 +507,36 @@ contract Cook {
         _moveDelegates(currentDelegate, delegatee, delegatorBalance);
     }
 
-    function _transferTokens(address src, address dst, uint96 amount) internal {
+    function _transferTokens(address src, address dst, uint128 amount) internal {
         require(src != address(0), "Cook::_transferTokens: cannot transfer from the zero address");
         require(dst != address(0), "Cook::_transferTokens: cannot transfer to the zero address");
 
-        balances[src] = sub96(balances[src], amount, "Cook::_transferTokens: transfer amount exceeds balance");
-        balances[dst] = add96(balances[dst], amount, "Cook::_transferTokens: transfer amount overflows");
+        balances[src] = sub128(balances[src], amount, "Cook::_transferTokens: transfer amount exceeds balance");
+        balances[dst] = add128(balances[dst], amount, "Cook::_transferTokens: transfer amount overflows");
         emit Transfer(src, dst, amount);
 
         _moveDelegates(delegates[src], delegates[dst], amount);
     }
 
-    function _moveDelegates(address srcRep, address dstRep, uint96 amount) internal {
+    function _moveDelegates(address srcRep, address dstRep, uint128 amount) internal {
         if (srcRep != dstRep && amount > 0) {
             if (srcRep != address(0)) {
                 uint32 srcRepNum = numCheckpoints[srcRep];
-                uint96 srcRepOld = srcRepNum > 0 ? checkpoints[srcRep][srcRepNum - 1].votes : 0;
-                uint96 srcRepNew = sub96(srcRepOld, amount, "Cook::_moveVotes: vote amount underflows");
+                uint128 srcRepOld = srcRepNum > 0 ? checkpoints[srcRep][srcRepNum - 1].votes : 0;
+                uint128 srcRepNew = sub128(srcRepOld, amount, "Cook::_moveVotes: vote amount underflows");
                 _writeCheckpoint(srcRep, srcRepNum, srcRepOld, srcRepNew);
             }
 
             if (dstRep != address(0)) {
                 uint32 dstRepNum = numCheckpoints[dstRep];
-                uint96 dstRepOld = dstRepNum > 0 ? checkpoints[dstRep][dstRepNum - 1].votes : 0;
-                uint96 dstRepNew = add96(dstRepOld, amount, "Cook::_moveVotes: vote amount overflows");
+                uint128 dstRepOld = dstRepNum > 0 ? checkpoints[dstRep][dstRepNum - 1].votes : 0;
+                uint128 dstRepNew = add128(dstRepOld, amount, "Cook::_moveVotes: vote amount overflows");
                 _writeCheckpoint(dstRep, dstRepNum, dstRepOld, dstRepNew);
             }
         }
     }
 
-    function _writeCheckpoint(address delegatee, uint32 nCheckpoints, uint96 oldVotes, uint96 newVotes) internal {
+    function _writeCheckpoint(address delegatee, uint32 nCheckpoints, uint128 oldVotes, uint128 newVotes) internal {
         uint32 blockNumber = safe32(block.number, "Cook::_writeCheckpoint: block number exceeds 32 bits");
 
         if (nCheckpoints > 0 && checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber) {
@@ -554,18 +554,18 @@ contract Cook {
         return uint32(n);
     }
 
-    function safe96(uint n, string memory errorMessage) internal pure returns (uint96) {
-        require(n < 2**96, errorMessage);
-        return uint96(n);
+    function safe128(uint n, string memory errorMessage) internal pure returns (uint128) {
+        require(n < 2**128, errorMessage);
+        return uint128(n);
     }
 
-    function add96(uint96 a, uint96 b, string memory errorMessage) internal pure returns (uint96) {
-        uint96 c = a + b;
+    function add128(uint128 a, uint128 b, string memory errorMessage) internal pure returns (uint128) {
+        uint128 c = a + b;
         require(c >= a, errorMessage);
         return c;
     }
 
-    function sub96(uint96 a, uint96 b, string memory errorMessage) internal pure returns (uint96) {
+    function sub128(uint128 a, uint128 b, string memory errorMessage) internal pure returns (uint128) {
         require(b <= a, errorMessage);
         return a - b;
     }
