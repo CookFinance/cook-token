@@ -4,3 +4,8 @@
 .openzeppelin/.session
 node_modules
 build/contracts
+node_modules
+
+#Hardhat files
+cache
+artifacts
