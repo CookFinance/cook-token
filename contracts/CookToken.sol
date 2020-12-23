@@ -274,4 +274,14 @@ contract CookToken {
         emit MinterChanged(address(0), minter);
         mintingAllowedAfter = mintingAllowedAfter_;
     }
+
+    /**
+     * @notice Change the minter address
+     * @param minter_ The address of the new minter
+     */
+    function setMinter(address minter_) external {
+        require(msg.sender == minter, "Uni::setMinter: only the minter can change the minter address");
+        emit MinterChanged(minter, minter_);
+        minter = minter_;
+    }
 }
