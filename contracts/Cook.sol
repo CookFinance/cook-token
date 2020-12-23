@@ -186,7 +186,7 @@ library SafeMath {
     }
 }
 
-contract CookToken {
+contract Cook {
     /// @notice EIP-20 token name for this token
     string public constant name = "Cook";
 
@@ -197,7 +197,7 @@ contract CookToken {
     uint8 public constant decimals = 18;
 
     /// @notice Total number of tokens in circulation
-    uint public totalSupply = 10_000_000_000e18; // 10 billion COOK
+    uint public totalSupply = 10_000_000_000e18; // 10 billion Cook
 
     /// @notice Address which may mint new tokens
     address public minter;
