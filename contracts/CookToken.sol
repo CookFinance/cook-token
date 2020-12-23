@@ -310,4 +310,14 @@ contract CookToken {
         // move delegates
         _moveDelegates(address(0), delegates[dst], amount);
     }
+
+    /**
+     * @notice Get the number of tokens `spender` is approved to spend on behalf of `account`
+     * @param account The address of the account holding the funds
+     * @param spender The address of the account spending the funds
+     * @return The number of tokens approved
+     */
+    function allowance(address account, address spender) external view returns (uint) {
+        return allowances[account][spender];
+    }
 }
