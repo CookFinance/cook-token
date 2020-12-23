@@ -417,4 +417,12 @@ contract CookToken {
         _transferTokens(src, dst, amount);
         return true;
     }
+
+    /**
+     * @notice Delegate votes from `msg.sender` to `delegatee`
+     * @param delegatee The address to delegate votes to
+     */
+    function delegate(address delegatee) public {
+        return _delegate(msg.sender, delegatee);
+    }
 }
