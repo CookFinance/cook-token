@@ -373,4 +373,13 @@ contract CookToken {
 
         emit Approval(owner, spender, amount);
     }
+
+    /**
+     * @notice Get the number of tokens held by the `account`
+     * @param account The address of the account to get the balance of
+     * @return The number of tokens held
+     */
+    function balanceOf(address account) external view returns (uint) {
+        return balances[account];
+    }
 }
