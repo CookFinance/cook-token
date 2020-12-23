@@ -187,7 +187,75 @@ library SafeMath {
 }
 
 contract CookToken {
-    function CookToken(){
+    /// @notice EIP-20 token name for this token
+    string public constant name = "Cook";
 
+    /// @notice EIP-20 token symbol for this token
+    string public constant symbol = "COOK";
+
+    /// @notice EIP-20 token decimals for this token
+    uint8 public constant decimals = 18;
+
+    /// @notice Total number of tokens in circulation
+    uint public totalSupply = 10_000_000_000e18; // 10 billion COOK
+
+    /// @notice Address which may mint new tokens
+    address public minter;
+
+    /// @notice The timestamp after which minting may occur
+    uint public mintingAllowedAfter;
+
+    /// @notice Minimum time between mints
+    uint32 public constant minimumTimeBetweenMints = 1 days * 365;
+
+    /// @notice Cap on the percentage of totalSupply that can be minted at each mint
+    uint8 public constant mintCap = 2;
+
+    /// @notice Allowance amounts on behalf of others
+    mapping (address => mapping (address => uint96)) internal allowances;
+
+    /// @notice Official record of token balances for each account
+    mapping (address => uint96) internal balances;
+
+    /// @notice A record of each accounts delegate
+    mapping (address => address) public delegates;
+
+    /// @notice A checkpoint for marking number of votes from a given block
+    struct Checkpoint {
+        uint32 fromBlock;
+        uint96 votes;
     }
+
+    /// @notice A record of votes checkpoints for each account, by index
+    mapping (address => mapping (uint32 => Checkpoint)) public checkpoints;
+
+    /// @notice The number of checkpoints for each account
+    mapping (address => uint32) public numCheckpoints;
+
+    /// @notice The EIP-712 typehash for the contract's domain
+    bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
+
+    /// @notice The EIP-712 typehash for the delegation struct used by the contract
+    bytes32 public constant DELEGATION_TYPEHASH = keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
+
+    /// @notice The EIP-712 typehash for the permit struct used by the contract
+    bytes32 public constant PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+
+    /// @notice A record of states for signing / validating signatures
+    mapping (address => uint) public nonces;
+
+    /// @notice An event thats emitted when the minter address is changed
+    event MinterChanged(address minter, address newMinter);
+
+    /// @notice An event thats emitted when an account changes its delegate
+    event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
+
+    /// @notice An event thats emitted when a delegate account's vote balance changes
+    event DelegateVotesChanged(address indexed delegate, uint previousBalance, uint newBalance);
+
+    /// @notice The standard EIP-20 transfer event
+    event Transfer(address indexed from, address indexed to, uint256 amount);
+
+    /// @notice The standard EIP-20 approval event
+    event Approval(address indexed owner, address indexed spender, uint256 amount);
 }
