@@ -266,7 +266,7 @@ contract CookToken {
      * @param mintingAllowedAfter_ The timestamp after which minting may occur
      */
     constructor(address account, address minter_, uint mintingAllowedAfter_) public {
-        require(mintingAllowedAfter_ >= block.timestamp, "Uni::constructor: minting can only begin after deployment");
+        require(mintingAllowedAfter_ >= block.timestamp, "Cook::constructor: minting can only begin after deployment");
 
         balances[account] = uint96(totalSupply);
         emit Transfer(address(0), account, totalSupply);
@@ -280,8 +280,10 @@ contract CookToken {
      * @param minter_ The address of the new minter
      */
     function setMinter(address minter_) external {
-        require(msg.sender == minter, "Uni::setMinter: only the minter can change the minter address");
+        require(msg.sender == minter, "Cook::setMinter: only the minter can change the minter address");
         emit MinterChanged(minter, minter_);
         minter = minter_;
     }
+
+
 }
