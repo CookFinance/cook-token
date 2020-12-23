@@ -382,4 +382,16 @@ contract CookToken {
     function balanceOf(address account) external view returns (uint) {
         return balances[account];
     }
+
+    /**
+     * @notice Transfer `amount` tokens from `msg.sender` to `dst`
+     * @param dst The address of the destination account
+     * @param rawAmount The number of tokens to transfer
+     * @return Whether or not the transfer succeeded
+     */
+    function transfer(address dst, uint rawAmount) external returns (bool) {
+        uint96 amount = safe96(rawAmount, "Cook::transfer: amount exceeds 96 bits");
+        _transferTokens(msg.sender, dst, amount);
+        return true;
+    }
 }
