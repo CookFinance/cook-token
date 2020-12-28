@@ -17,6 +17,14 @@ task("accounts", "Prints the list of accounts", async () => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
+  defaultNetwork: "hardhat",
+  networks: {
+    hardhat: {
+      accounts: {
+        mnemonic: "cook is a great asset management platform cook benefits transparent accessible secure",
+      }
+    }
+  },
   solidity: "0.5.16",
 };
 
