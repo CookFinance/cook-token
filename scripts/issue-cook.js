@@ -15,7 +15,7 @@ async function main() {
 
   // We get the contract to deploy
   const Cook = await hre.ethers.getContractFactory("Cook");
-  const cook = await Cook.deploy("0x3b9955A528E1822C49ab3476Bae2FfbbBE2B2D87", "0x3b9955A528E1822C49ab3476Bae2FfbbBE2B2D87", 1801443600);
+  const cook = await Cook.deploy("0x4026fe27Bc3a66C5dCb38D502212109caB0aB23a", "0x4026fe27Bc3a66C5dCb38D502212109caB0aB23a", 1801443600);
 
   await cook.deployed();
 
