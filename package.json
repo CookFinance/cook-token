@@ -1,5 +1,8 @@
 {
   "name": "hardhat-project",
+  "dependencies": {
+    "openzeppelin-solidity-2.3.0": "npm:openzeppelin-solidity@2.3.0"
+  },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
