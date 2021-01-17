@@ -29,4 +29,16 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
 
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
+
+    /* ========== CONSTRUCTOR ========== */
+
+    constructor(
+        address _rewardsDistribution,
+        address _rewardsToken,
+        address _stakingToken
+    ) public {
+        rewardsToken = IERC20(_rewardsToken);
+        stakingToken = IERC20(_stakingToken);
+        rewardsDistribution = _rewardsDistribution;
+    }
 }
