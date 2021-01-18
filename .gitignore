@@ -6,6 +6,9 @@ node_modules
 build/contracts
 node_modules
 
-#Hardhat files
+# Hardhat files
 cache
 artifacts
+
+# typechain
+typechain
