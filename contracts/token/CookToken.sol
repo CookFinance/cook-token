@@ -32,11 +32,11 @@ contract CookToken is Context, AccessControl, ERC20Burnable, ERC20Pausable {
      *
      * See {ERC20-constructor}.
      */
-    constructor(uint256 initialSupply, address admin) public ERC20("Cook Token", "COOK") {
+    constructor(address admin) public ERC20("Cook Token", "COOK") {
         _setupRole(DEFAULT_ADMIN_ROLE, admin);
         _setupRole(MINTER_ROLE, admin);
         _setupRole(PAUSER_ROLE, admin);
-        mint(admin, initialSupply);
+        mint(admin, 10_000_000_000e18);
     }
 
     /**
