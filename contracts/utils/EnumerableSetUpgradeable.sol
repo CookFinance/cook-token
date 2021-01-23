@@ -26,7 +26,7 @@ pragma solidity >=0.6.0 <0.8.0;
  * As of v3.3.0, sets of type `bytes32` (`Bytes32Set`), `address` (`AddressSet`)
  * and `uint256` (`UintSet`) are supported.
  */
-library EnumerableSet {
+library EnumerableSetUpgradeable {
     // To implement this library for multiple types with as little code
     // repetition as possible, we write it in terms of a generic Set type with
     // bytes32 values.
