@@ -2,6 +2,7 @@
 # OpenZeppelin
 .openzeppelin/dev-*.json
 .openzeppelin/.session
+.openzeppelin/unknown-*.json
 node_modules
 build/contracts
 node_modules
