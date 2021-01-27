@@ -31,4 +31,10 @@ describe("CookToken (proxy)", () => {
         expect(await cookToken.getRoleMemberCount(MINTER_ROLE)).to.equal('1');
         expect(await cookToken.getRoleMember(MINTER_ROLE, 0)).to.equal(await deployer.getAddress());
     });
+
+    it('deployer has the pauser role', async function () {
+        expect(await cookToken.getRoleMemberCount(PAUSER_ROLE)).to.equal('1');
+        expect(await cookToken.getRoleMember(PAUSER_ROLE, 0)).to.equal(await deployer.getAddress());
+    });
+
 });
