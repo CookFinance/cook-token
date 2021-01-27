@@ -55,4 +55,26 @@ describe("CookToken (proxy)", () => {
             expect(cookToken.connect(initialTokenHolder).mint(await initialTokenHolder.getAddress(), amount)).to.be.revertedWith('ERC20PresetMinterPauser: must have minter role to mint')
         });
     });
+
+    describe('pausing', function () {
+        it('deployer can pause', async function () {
+            expect(cookToken.pause()).to.emit(cookToken, 'Paused').withArgs(await deployer.getAddress());
+            expect(await cookToken.paused()).to.equal(true);
+        });
+
+        it('deployer can unpause', async function () {
+            await cookToken.pause();
+            expect(cookToken.unpause()).to.emit(cookToken, 'Unpaused').withArgs(await deployer.getAddress());
+            expect(await cookToken.paused()).to.equal(false);
+        });
+
+        it('cannot mint while paused', async function () {
+            await cookToken.pause();
+            expect(cookToken.mint(await other.getAddress(), amount)).to.be.revertedWith('ERC20Pausable: token transfer while paused');
+        });
+
+        it('other accounts cannot pause', async function () {
+            expect(cookToken.connect(other).pause()).to.be.revertedWith('ERC20PresetMinterPauser: must have pauser role to pause');
+        });
+    });
 });
