@@ -4,9 +4,9 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/dist/src/signer-with-
 import {CookToken} from "../../typechain";
 import chai from "chai";
 
-const { expect } = chai;
+const {expect} = chai;
 
-describe("CookToken (proxy)", () => {
+describe("CookToken", () => {
     let cookToken: CookToken;
     let initialTokenHolder: SignerWithAddress;
     let deployer: SignerWithAddress;
@@ -22,7 +22,7 @@ describe("CookToken (proxy)", () => {
         deployer = signers[0];
         initialTokenHolder = signers[1];
         other = signers[2];
-        cookToken = await upgrades.deployProxy(CookToken, [await initialTokenHolder.getAddress()], { unsafeAllowCustomTypes: true }) as CookToken;
+        cookToken = await upgrades.deployProxy(CookToken, [await initialTokenHolder.getAddress()], {unsafeAllowCustomTypes: true}) as CookToken;
     });
 
     it('deployer has the default admin role', async function () {
@@ -52,7 +52,7 @@ describe("CookToken (proxy)", () => {
         });
 
         it('other accounts cannot mint tokens', async function () {
-            expect(cookToken.connect(initialTokenHolder).mint(await initialTokenHolder.getAddress(), amount)).to.be.revertedWith('ERC20PresetMinterPauser: must have minter role to mint')
+            expect(cookToken.connect(initialTokenHolder).mint(await initialTokenHolder.getAddress(), amount)).to.be.revertedWith('CookToken: must have minter role to mint')
         });
     });
 
@@ -74,7 +74,15 @@ describe("CookToken (proxy)", () => {
         });
 
         it('other accounts cannot pause', async function () {
-            expect(cookToken.connect(other).pause()).to.be.revertedWith('ERC20PresetMinterPauser: must have pauser role to pause');
+            expect(cookToken.connect(other).pause()).to.be.revertedWith('CookToken: must have pauser role to pause');
+        });
+    });
+
+    describe('burning', function () {
+        it('holders can burn their tokens', async function () {
+            await cookToken.mint(await other.getAddress(), amount);
+            expect(cookToken.connect(other).burn('4999')).to.emit(cookToken, 'Transfer').withArgs(await other.getAddress(), ethers.constants.AddressZero, '4999');
+            expect(await cookToken.balanceOf(await other.getAddress())).to.equal('1');
         });
     });
 });
