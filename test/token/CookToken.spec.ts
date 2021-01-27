@@ -37,4 +37,8 @@ describe("CookToken (proxy)", () => {
         expect(await cookToken.getRoleMember(PAUSER_ROLE, 0)).to.equal(await deployer.getAddress());
     });
 
+    it('minter and pauser role admin is the default admin', async function () {
+        expect(await cookToken.getRoleAdmin(MINTER_ROLE)).to.equal(DEFAULT_ADMIN_ROLE);
+        expect(await cookToken.getRoleAdmin(PAUSER_ROLE)).to.equal(DEFAULT_ADMIN_ROLE);
+    });
 });
