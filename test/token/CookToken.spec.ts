@@ -27,5 +27,8 @@ describe("CookToken (proxy)", () => {
         expect(await cookToken.getRoleMember(DEFAULT_ADMIN_ROLE, 0)).to.equal(await deployer.getAddress());
     });
 
-
+    it('deployer has the minter role', async function () {
+        expect(await cookToken.getRoleMemberCount(MINTER_ROLE)).to.equal('1');
+        expect(await cookToken.getRoleMember(MINTER_ROLE, 0)).to.equal(await deployer.getAddress());
+    });
 });
