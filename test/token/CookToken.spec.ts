@@ -15,6 +15,8 @@ describe("CookToken", () => {
     const MINTER_ROLE: string = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE"));
     const PAUSER_ROLE: string = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("PAUSER_ROLE"));
     const amount: string = '5000';
+    const name = 'Cook Token';
+    const symbol = 'COOK';
 
     beforeEach(async () => {
         const CookToken: ContractFactory = await ethers.getContractFactory("CookToken");
@@ -23,6 +25,10 @@ describe("CookToken", () => {
         initialTokenHolder = signers[1];
         other = signers[2];
         cookToken = await upgrades.deployProxy(CookToken, [await initialTokenHolder.getAddress()], {unsafeAllowCustomTypes: true}) as CookToken;
+    });
+
+    it('has a name', async function () {
+        expect(await cookToken.name()).to.equal(name);
     });
 
     it('deployer has the default admin role', async function () {
