@@ -31,6 +31,10 @@ describe("CookToken", () => {
         expect(await cookToken.name()).to.equal(name);
     });
 
+    it('has a symbol', async function () {
+        expect(await cookToken.symbol()).to.equal(symbol);
+    });
+
     it('deployer has the default admin role', async function () {
         expect(await cookToken.getRoleMemberCount(DEFAULT_ADMIN_ROLE)).to.equal('1');
         expect(await cookToken.getRoleMember(DEFAULT_ADMIN_ROLE, 0)).to.equal(await deployer.getAddress());
