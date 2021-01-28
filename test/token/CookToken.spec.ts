@@ -17,6 +17,7 @@ describe("CookToken", () => {
     const amount: string = '5000';
     const name: string = 'Cook Token';
     const symbol: string = 'COOK';
+    const initialSupply = ethers.utils.parseEther('10000000000');
 
     beforeEach(async () => {
         const CookToken: ContractFactory = await ethers.getContractFactory("CookToken");
@@ -61,7 +62,7 @@ describe("CookToken", () => {
 
     describe('total supply', function () {
         it('returns the total amount of tokens', async function () {
-            expect((await cookToken.totalSupply()).toString()).to.equal(ethers.utils.parseEther('10000000000'));
+            expect((await cookToken.totalSupply()).toString()).to.equal(initialSupply);
         });
     });
 
@@ -74,7 +75,18 @@ describe("CookToken", () => {
 
         describe('when the requested account has some tokens', function () {
             it('returns the total amount of tokens', async function () {
-                expect(await cookToken.balanceOf(await initialTokenHolder.getAddress())).to.equal(ethers.utils.parseEther('10000000000'));
+                expect(await cookToken.balanceOf(await initialTokenHolder.getAddress())).to.equal(initialSupply);
+            });
+        });
+    });
+
+    describe('transfer', function () {
+        describe('when the recipient is not the zero address', function () {
+            describe('when the sender does not have enough balance', function () {
+                const amount = initialSupply.add(1);
+                it('reverts', async function () {
+                    expect(cookToken.connect(initialTokenHolder).transfer(await other.getAddress(), amount)).to.be.revertedWith('ERC20: transfer amount exceeds balance')
+                });
             });
         });
     });
