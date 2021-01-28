@@ -102,6 +102,20 @@ describe("CookToken", () => {
                 expect(cookToken.connect(initialTokenHolder).transfer(await other.getAddress(), amount)).to.emit(cookToken, 'Transfer').withArgs(await initialTokenHolder.getAddress(), await other.getAddress(), amount);
             });
         });
+
+        describe('when the sender transfers zero tokens', function () {
+            const amount = ethers.utils.parseEther('0');
+
+            it('transfers the requested amount', async function () {
+                await cookToken.connect(initialTokenHolder).transfer(await other.getAddress(), amount);
+                expect(await cookToken.balanceOf(await initialTokenHolder.getAddress())).to.equal(initialSupply);
+                expect(await cookToken.balanceOf(await other.getAddress())).to.equal(amount);
+            });
+
+            it('emits a transfer event', async function () {
+                expect(cookToken.connect(initialTokenHolder).transfer(await other.getAddress(), amount)).to.emit(cookToken, 'Transfer').withArgs(await initialTokenHolder.getAddress(), await other.getAddress(), amount);
+            });
+        });
     });
 
     describe('minting', function () {
