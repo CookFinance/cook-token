@@ -97,6 +97,10 @@ describe("CookToken", () => {
                 expect(await cookToken.balanceOf(await initialTokenHolder.getAddress())).to.equal(0);
                 expect(await cookToken.balanceOf(await other.getAddress())).to.equal(amount);
             });
+
+            it('emits a transfer event', async function () {
+                expect(cookToken.connect(initialTokenHolder).transfer(await other.getAddress(), amount)).to.emit(cookToken, 'Transfer').withArgs(await initialTokenHolder.getAddress(), await other.getAddress(), amount);
+            });
         });
     });
 
