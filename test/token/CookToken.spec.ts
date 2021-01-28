@@ -27,24 +27,6 @@ describe("CookToken", () => {
         cookToken = await upgrades.deployProxy(CookToken, [await initialTokenHolder.getAddress()], {unsafeAllowCustomTypes: true}) as CookToken;
     });
 
-    it('has a name', async function () {
-        expect(await cookToken.name()).to.equal(name);
-    });
-
-    it('has a symbol', async function () {
-        expect(await cookToken.symbol()).to.equal(symbol);
-    });
-
-    it('has 18 decimals', async function () {
-        expect((await cookToken.decimals()).toString()).to.equal('18');
-    });
-
-    describe('total supply', function () {
-        it('returns the total amount of tokens', async function () {
-            expect((await cookToken.totalSupply()).toString()).to.equal(ethers.utils.parseEther('10000000000'));
-        });
-    });
-
     it('deployer has the default admin role', async function () {
         expect(await cookToken.getRoleMemberCount(DEFAULT_ADMIN_ROLE)).to.equal('1');
         expect(await cookToken.getRoleMember(DEFAULT_ADMIN_ROLE, 0)).to.equal(await deployer.getAddress());
@@ -63,6 +45,38 @@ describe("CookToken", () => {
     it('minter and pauser role admin is the default admin', async function () {
         expect(await cookToken.getRoleAdmin(MINTER_ROLE)).to.equal(DEFAULT_ADMIN_ROLE);
         expect(await cookToken.getRoleAdmin(PAUSER_ROLE)).to.equal(DEFAULT_ADMIN_ROLE);
+    });
+
+    it('has a name', async function () {
+        expect(await cookToken.name()).to.equal(name);
+    });
+
+    it('has a symbol', async function () {
+        expect(await cookToken.symbol()).to.equal(symbol);
+    });
+
+    it('has 18 decimals', async function () {
+        expect((await cookToken.decimals()).toString()).to.equal('18');
+    });
+
+    describe('total supply', function () {
+        it('returns the total amount of tokens', async function () {
+            expect((await cookToken.totalSupply()).toString()).to.equal(ethers.utils.parseEther('10000000000'));
+        });
+    });
+
+    describe('balanceOf', function () {
+        describe('when the requested account has no tokens', function () {
+            it('returns zero', async function () {
+                expect((await cookToken.balanceOf(await other.getAddress())).toString()).to.equal('0');
+            });
+        });
+
+        describe('when the requested account has some tokens', function () {
+            it('returns the total amount of tokens', async function () {
+                expect(await cookToken.balanceOf(await initialTokenHolder.getAddress())).to.equal(ethers.utils.parseEther('10000000000'));
+            });
+        });
     });
 
     describe('minting', function () {
