@@ -116,6 +116,12 @@ describe("CookToken", () => {
                 expect(cookToken.connect(initialTokenHolder).transfer(await other.getAddress(), amount)).to.emit(cookToken, 'Transfer').withArgs(await initialTokenHolder.getAddress(), await other.getAddress(), amount);
             });
         });
+
+        describe('when the recipient is the zero address', function () {
+            it('reverts', async function () {
+                expect(cookToken.connect(initialTokenHolder).transfer(ethers.constants.AddressZero, initialSupply)).to.be.revertedWith('ERC20: transfer to the zero address')
+            });
+        });
     });
 
     describe('minting', function () {
