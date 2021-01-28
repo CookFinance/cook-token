@@ -15,8 +15,8 @@ describe("CookToken", () => {
     const MINTER_ROLE: string = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE"));
     const PAUSER_ROLE: string = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("PAUSER_ROLE"));
     const amount: string = '5000';
-    const name = 'Cook Token';
-    const symbol = 'COOK';
+    const name: string = 'Cook Token';
+    const symbol: string = 'COOK';
 
     beforeEach(async () => {
         const CookToken: ContractFactory = await ethers.getContractFactory("CookToken");
@@ -33,6 +33,10 @@ describe("CookToken", () => {
 
     it('has a symbol', async function () {
         expect(await cookToken.symbol()).to.equal(symbol);
+    });
+
+    it('has 18 decimals', async function () {
+        expect((await cookToken.decimals()).toString()).to.equal('18');
     });
 
     it('deployer has the default admin role', async function () {
