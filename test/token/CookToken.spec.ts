@@ -89,6 +89,15 @@ describe("CookToken", () => {
                 });
             });
         });
+
+        describe('when the sender transfers all balance', function () {
+            const amount = initialSupply;
+            it('transfers the requested amount', async function () {
+                await cookToken.connect(initialTokenHolder).transfer(await other.getAddress(), amount);
+                expect(await cookToken.balanceOf(await initialTokenHolder.getAddress())).to.equal(0);
+                expect(await cookToken.balanceOf(await other.getAddress())).to.equal(amount);
+            });
+        });
     });
 
     describe('minting', function () {
