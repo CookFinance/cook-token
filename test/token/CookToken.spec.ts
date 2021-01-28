@@ -39,6 +39,12 @@ describe("CookToken", () => {
         expect((await cookToken.decimals()).toString()).to.equal('18');
     });
 
+    describe('total supply', function () {
+        it('returns the total amount of tokens', async function () {
+            expect((await cookToken.totalSupply()).toString()).to.equal(ethers.utils.parseEther('10000000000'));
+        });
+    });
+
     it('deployer has the default admin role', async function () {
         expect(await cookToken.getRoleMemberCount(DEFAULT_ADMIN_ROLE)).to.equal('1');
         expect(await cookToken.getRoleMember(DEFAULT_ADMIN_ROLE, 0)).to.equal(await deployer.getAddress());
