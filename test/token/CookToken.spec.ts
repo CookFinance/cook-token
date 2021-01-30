@@ -264,6 +264,17 @@ describe("CookToken", () => {
                             expect(await cookToken.allowance(owner.address, spender.address)).to.equal(amount);
                         });
                     });
+
+                    describe('when the spender had an approved amount', function () {
+                        beforeEach(async function () {
+                            await cookToken.connect(owner).approve(spender.address, 1);
+                        });
+
+                        it('approves the requested amount and replaces the previous one', async function () {
+                            await cookToken.connect(owner).approve(spender.address, amount);
+                            expect(await cookToken.allowance(owner.address, spender.address)).to.equal(amount);
+                        });
+                    });
                 });
             });
 
