@@ -240,6 +240,13 @@ describe("CookToken", () => {
                 it('emits an approval event', async function () {
                     expect(cookToken.connect(owner).approve(spender.address, amount)).to.emit(cookToken, 'Approval').withArgs(owner.address, spender.address, amount);
                 });
+
+                describe('when there was no approved amount before', function () {
+                    it('approves the requested amount', async function () {
+                        await cookToken.connect(owner).approve(spender.address, amount);
+                        expect(await cookToken.allowance(owner.address, spender.address)).to.equal(amount);
+                    });
+                });
             });
         });
     });
