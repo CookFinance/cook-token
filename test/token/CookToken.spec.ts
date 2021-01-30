@@ -157,6 +157,10 @@ describe("CookToken", () => {
                             await cookToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount);
                             expect(await cookToken.allowance(tokenOwner.address, spender.address)).to.equal('0');
                         });
+
+                        it('emits a transfer event', async function () {
+                            expect(cookToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount)).to.emit(cookToken, 'Transfer').withArgs(tokenOwner.address, to.address, amount)
+                        });
                     });
                 });
             });
