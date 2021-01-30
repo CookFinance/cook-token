@@ -138,9 +138,11 @@ describe("CookToken", () => {
             });
             describe('when the recipient is not the zero address', function () {
                 let to: SignerWithAddress;
+
                 beforeEach(async function () {
                     to = another;
                 });
+
                 describe('when the spender has enough approved balance', function () {
                     beforeEach(async function () {
                         await cookToken.connect(tokenOwner).approve(spender.address, initialSupply);
@@ -171,7 +173,20 @@ describe("CookToken", () => {
                     describe('when the token owner does not have enough balance', function () {
                         const amount = initialSupply.add(1);
                         it('reverts', async function () {
-                            expect(cookToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount)).to.be.revertedWith('ERC20: transfer amount exceeds balance')
+                            expect(cookToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount)).to.be.revertedWith('ERC20: transfer amount exceeds balance');
+                        });
+                    });
+                });
+
+                describe('when the spender does not have enough approved balance', function () {
+                    beforeEach(async function () {
+                        await cookToken.connect(tokenOwner).approve(spender.address, initialSupply.sub(1));
+                    });
+
+                    describe('when the token owner has enough balance', function () {
+                        const amount = initialSupply;
+                        it('reverts', async function () {
+                            expect(cookToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount)).to.be.revertedWith('ERC20: transfer amount exceeds allowance');
                         });
                     });
                 });
