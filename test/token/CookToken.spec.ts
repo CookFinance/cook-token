@@ -190,7 +190,13 @@ describe("CookToken", () => {
                         });
                     });
 
+                    describe('when the token owner does not have enough balance', function () {
+                        const amount = initialSupply.add(1);
 
+                        it('reverts', async function () {
+                            expect(cookToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount)).to.be.revertedWith('ERC20: transfer amount exceeds balance');
+                        });
+                    });
                 });
             });
         });
