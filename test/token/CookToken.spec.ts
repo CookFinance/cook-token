@@ -257,6 +257,13 @@ describe("CookToken", () => {
                         await cookToken.connect(owner).approve(spender.address, amount);
                         expect(await cookToken.allowance(owner.address, spender.address)).to.equal(amount);
                     });
+
+                    describe('when there was no approved amount before', function () {
+                        it('approves the requested amount', async function () {
+                            await cookToken.connect(owner).approve(spender.address, amount);
+                            expect(await cookToken.allowance(owner.address, spender.address)).to.equal(amount);
+                        });
+                    });
                 });
             });
 
