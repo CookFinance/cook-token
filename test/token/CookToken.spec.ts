@@ -161,6 +161,10 @@ describe("CookToken", () => {
                         it('emits a transfer event', async function () {
                             expect(cookToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount)).to.emit(cookToken, 'Transfer').withArgs(tokenOwner.address, to.address, amount)
                         });
+
+                        it('emits an approval event', async function () {
+                            expect(cookToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount)).to.emit(cookToken, 'Approval').withArgs(tokenOwner.address, spender.address, await cookToken.allowance(tokenOwner.address, spender.address));
+                        });
                     });
                 });
             });
