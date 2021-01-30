@@ -11,6 +11,7 @@ describe("CookToken", () => {
     let initialTokenHolder: SignerWithAddress;
     let deployer: SignerWithAddress;
     let other: SignerWithAddress;
+    let another: SignerWithAddress;
     const DEFAULT_ADMIN_ROLE: string = '0x0000000000000000000000000000000000000000000000000000000000000000';
     const MINTER_ROLE: string = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE"));
     const PAUSER_ROLE: string = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("PAUSER_ROLE"));
@@ -25,6 +26,7 @@ describe("CookToken", () => {
         deployer = signers[0];
         initialTokenHolder = signers[1];
         other = signers[2];
+        another = signers[3];
         cookToken = await upgrades.deployProxy(CookToken, [await initialTokenHolder.getAddress()], {unsafeAllowCustomTypes: true}) as CookToken;
     });
 
@@ -123,6 +125,39 @@ describe("CookToken", () => {
             });
         });
     });
+
+    describe('transfer from', function () {
+        let spender: SignerWithAddress;
+        beforeEach(async function () {
+            spender = other;
+        });
+        describe('when the token owner is not the zero address', function () {
+            let tokenOwner: SignerWithAddress;
+            beforeEach(async function () {
+                tokenOwner = initialTokenHolder;
+            });
+            describe('when the recipient is not the zero address', function () {
+                let to: SignerWithAddress;
+                beforeEach(async function () {
+                    to = another;
+                });
+                describe('when the spender has enough approved balance', function () {
+                    beforeEach(async function () {
+                        await cookToken.connect(tokenOwner).approve(spender.address, initialSupply);
+                    });
+                    describe('when the token owner has enough balance', function () {
+                        const amount = initialSupply;
+                        it('transfers the requested amount', async function () {
+                            await cookToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount);
+                            expect(await cookToken.balanceOf(tokenOwner.address)).to.equal('0');
+                            expect(await cookToken.balanceOf(to.address)).to.equal(amount);
+                        });
+                    });
+                });
+            });
+        });
+    });
+
 
     describe('minting', function () {
         it('deployer can mint tokens', async function () {
