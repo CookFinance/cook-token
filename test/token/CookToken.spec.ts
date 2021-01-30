@@ -257,24 +257,6 @@ describe("CookToken", () => {
                         await cookToken.connect(owner).approve(spender.address, amount);
                         expect(await cookToken.allowance(owner.address, spender.address)).to.equal(amount);
                     });
-
-                    describe('when there was no approved amount before', function () {
-                        it('approves the requested amount', async function () {
-                            await cookToken.connect(owner).approve(spender.address, amount);
-                            expect(await cookToken.allowance(owner.address, spender.address)).to.equal(amount);
-                        });
-                    });
-
-                    describe('when the spender had an approved amount', function () {
-                        beforeEach(async function () {
-                            await cookToken.connect(owner).approve(spender.address, 1);
-                        });
-
-                        it('approves the requested amount and replaces the previous one', async function () {
-                            await cookToken.connect(owner).approve(spender.address, amount);
-                            expect(await cookToken.allowance(owner.address, spender.address)).to.equal(amount);
-                        });
-                    });
                 });
             });
 
@@ -284,6 +266,30 @@ describe("CookToken", () => {
                 it('emits an approval event', async function () {
                     expect(cookToken.connect(owner).approve(spender.address, amount)).to.emit(cookToken, 'Approval').withArgs(owner.address, spender.address, amount);
                 });
+
+                describe('when there was no approved amount before', function () {
+                    it('approves the requested amount', async function () {
+                        await cookToken.connect(owner).approve(spender.address, amount);
+                        expect(await cookToken.allowance(owner.address, spender.address)).to.equal(amount);
+                    });
+                });
+
+                describe('when the spender had an approved amount', function () {
+                    beforeEach(async function () {
+                        await cookToken.connect(owner).approve(spender.address, 1);
+                    });
+
+                    it('approves the requested amount and replaces the previous one', async function () {
+                        await cookToken.connect(owner).approve(spender.address, amount);
+                        expect(await cookToken.allowance(owner.address, spender.address)).to.equal(amount);
+                    });
+                });
+            });
+        });
+
+        describe('when the spender is the zero address', function () {
+            it('reverts', async function () {
+                expect(cookToken.connect(initialTokenHolder).approve(ethers.constants.AddressZero, initialSupply)).to.be.revertedWith('ERC20: approve to the zero address');
             });
         });
     });
