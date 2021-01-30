@@ -294,6 +294,68 @@ describe("CookToken", () => {
         });
     });
 
+    describe('decrease allowance', function () {
+        describe('when the spender is not the zero address', function () {
+            let initialHolder: SignerWithAddress;
+            let spender: SignerWithAddress;
+            beforeEach(async function () {
+                initialHolder = initialTokenHolder;
+                spender = other;
+            });
+
+            function shouldDecreaseApproval (amount: any) {
+                describe('when there was no approved amount before', function () {
+                    it('reverts', async function () {
+                        expect(cookToken.connect(initialHolder).decreaseAllowance(spender.address, amount)).to.revertedWith('ERC20: decreased allowance below zero');
+                    });
+                });
+
+                describe('when the spender had an approved amount', function () {
+                    const approvedAmount = amount;
+
+                    beforeEach(async function () {
+                        await cookToken.connect(initialHolder).approve(spender.address, approvedAmount);
+                    });
+
+                    it('emits an approval event', async function () {
+                        expect(cookToken.connect(initialHolder).decreaseAllowance(spender.address, approvedAmount)).to.emit(cookToken, 'Approval').withArgs(initialHolder.address, spender.address, 0);
+                    });
+
+                    it('decreases the spender allowance subtracting the requested amount', async function () {
+                        await cookToken.connect(initialHolder).decreaseAllowance(spender.address, amount.sub(1));
+                        expect(await cookToken.allowance(initialHolder.address, spender.address)).to.equal(1);
+                    });
+
+                    it('sets the allowance to zero when all allowance is removed', async function () {
+                        await cookToken.connect(initialHolder).decreaseAllowance(spender.address, approvedAmount);
+                        expect(await cookToken.allowance(initialHolder.address, spender.address)).to.equal(0);
+                    });
+
+                    it('reverts when more than the full allowance is removed', async function () {
+                        expect(cookToken.connect(initialHolder).decreaseAllowance(spender.address, approvedAmount.add(1))).to.revertedWith('ERC20: decreased allowance below zero');
+                    });
+                });
+            }
+
+            describe('when the sender has enough balance', function () {
+                shouldDecreaseApproval(initialSupply);
+            });
+
+            describe('when the sender does not have enough balance', function () {
+                shouldDecreaseApproval(initialSupply.add(1));
+            });
+        });
+
+        describe('when the spender is the zero address', function () {
+            const amount = initialSupply;
+            const spender = ethers.constants.AddressZero;
+
+            it('reverts', async function () {
+                expect(cookToken.connect(initialTokenHolder).decreaseAllowance(spender, amount)).revertedWith('ERC20: decreased allowance below zero');
+            });
+        });
+    });
+
     describe('minting', function () {
         it('deployer can mint tokens', async function () {
             expect(cookToken.mint(await other.getAddress(), amount)).to.emit(cookToken, 'Transfer').withArgs(ethers.constants.AddressZero, await other.getAddress(), amount);
