@@ -152,6 +152,11 @@ describe("CookToken", () => {
                             expect(await cookToken.balanceOf(tokenOwner.address)).to.equal('0');
                             expect(await cookToken.balanceOf(to.address)).to.equal(amount);
                         });
+
+                        it('decreases the spender allowance', async function () {
+                            await cookToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount);
+                            expect(await cookToken.allowance(tokenOwner.address, spender.address)).to.equal('0');
+                        });
                     });
                 });
             });
