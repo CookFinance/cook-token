@@ -199,6 +199,19 @@ describe("CookToken", () => {
                     });
                 });
             });
+
+            describe('when the recipient is the zero address', function () {
+                const amount = initialSupply;
+                const to = ethers.constants.AddressZero;
+
+                beforeEach(async function () {
+                    await cookToken.connect(tokenOwner).approve(spender.address, amount);
+                });
+
+                it('reverts', async function () {
+                    expect(cookToken.connect(spender).transferFrom(tokenOwner.address, to, amount)).to.be.revertedWith('ERC20: transfer to the zero address');
+                });
+            });
         });
     });
 
