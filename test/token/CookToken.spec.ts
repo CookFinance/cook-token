@@ -259,6 +259,14 @@ describe("CookToken", () => {
                     });
                 });
             });
+
+            describe('when the sender does not have enough balance', function () {
+                const amount = initialSupply.add(1);
+
+                it('emits an approval event', async function () {
+                    expect(cookToken.connect(owner).approve(spender.address, amount)).to.emit(cookToken, 'Approval').withArgs(owner.address, spender.address, amount);
+                });
+            });
         });
     });
 
