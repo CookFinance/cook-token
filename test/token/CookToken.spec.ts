@@ -224,6 +224,25 @@ describe("CookToken", () => {
         });
     });
 
+    describe('approve', function () {
+        let owner: SignerWithAddress;
+        let spender: SignerWithAddress;
+
+        beforeEach(async function () {
+            owner = initialTokenHolder;
+            spender = other;
+        });
+
+        describe('when the spender is not the zero address', function () {
+            describe('when the sender has enough balance', function () {
+                const amount = initialSupply;
+
+                it('emits an approval event', async function () {
+                    expect(cookToken.connect(owner).approve(spender.address, amount)).to.emit(cookToken, 'Approval').withArgs(owner.address, spender.address, amount);
+                });
+            });
+        });
+    });
 
     describe('minting', function () {
         it('deployer can mint tokens', async function () {
