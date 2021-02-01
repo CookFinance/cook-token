@@ -429,6 +429,34 @@ describe("CookToken", () => {
         });
     });
 
+    describe('_mint', function () {
+        const amount = ethers.utils.parseEther('50');
+        const ZERO_ADDRESS = ethers.constants.AddressZero;
+
+        it('rejects a null account', async function () {
+            expect(cookToken.mint(ZERO_ADDRESS,amount)).revertedWith('ERC20: mint to the zero address');
+        });
+
+        describe('for a non zero account', function () {
+            beforeEach('minting', async function () {
+                await cookToken.mint(other.address, amount);
+            });
+
+            it('increments totalSupply', async function () {
+                const expectedSupply = initialSupply.add(amount);
+                expect(await cookToken.totalSupply()).equal(expectedSupply);
+            });
+
+            it('increments recipient balance', async function () {
+                expect(await cookToken.balanceOf(other.address)).equal(amount);
+            });
+
+            it('emits Transfer event', async function () {
+                expect(cookToken.mint(other.address, amount)).emit(cookToken, 'Transfer').withArgs(ZERO_ADDRESS, other.address);
+            });
+        });
+    });
+
     describe('minting', function () {
         it('deployer can mint tokens', async function () {
             expect(cookToken.mint(await other.getAddress(), amount)).to.emit(cookToken, 'Transfer').withArgs(ethers.constants.AddressZero, await other.getAddress(), amount);
