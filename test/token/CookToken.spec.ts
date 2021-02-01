@@ -501,6 +501,104 @@ describe("CookToken", () => {
         });
     });
 
+    describe('burn', function () {
+        let owner: SignerWithAddress;
+        beforeEach(async function () {
+            owner = initialTokenHolder;
+        });
+
+        describe('when the given amount is not greater than balance of the sender', function () {
+            context('for a zero amount', function () {
+                shouldBurn(ethers.utils.parseEther('0'));
+            });
+
+            context('for a non-zero amount', function () {
+                shouldBurn(ethers.utils.parseEther('100'));
+            });
+
+            function shouldBurn (amount: any) {
+                beforeEach(async function () {
+                    await cookToken.connect(owner).burn(amount);
+                });
+
+                it('burns the requested amount', async function () {
+                    expect(await cookToken.balanceOf(owner.address)).equal(initialSupply.sub(amount));
+                });
+
+                it('emits a transfer event', async function () {
+                    expect(cookToken.connect(owner).burn(amount)).emit(cookToken, 'Transfer').withArgs(owner.address, ethers.constants.AddressZero);
+                });
+            }
+        });
+
+        describe('when the given amount is greater than the balance of the sender', function () {
+            const amount = initialSupply.add(1);
+
+            it('reverts', async function () {
+                expect(cookToken.connect(owner).burn(amount)).revertedWith('ERC20: burn amount exceeds balance');
+            });
+        });
+    });
+
+    describe('burnFrom', function () {
+        let owner: SignerWithAddress;
+        let burner: SignerWithAddress;
+
+        beforeEach(async function () {
+            owner = initialTokenHolder;
+            burner = other;
+        });
+
+        describe('on success', function () {
+            context('for a zero amount', function () {
+                shouldBurnFrom(ethers.utils.parseEther('0'));
+            });
+
+            context('for a non-zero amount', function () {
+                shouldBurnFrom(ethers.utils.parseEther('100'));
+            });
+
+            function shouldBurnFrom (amount: any) {
+                const originalAllowance = amount.mul(3);
+
+                beforeEach(async function () {
+                    await cookToken.connect(owner).approve(burner.address, originalAllowance);
+                    await cookToken.connect(burner).burnFrom(owner.address, amount);
+                });
+
+                it('burns the requested amount', async function () {
+                    expect(await cookToken.balanceOf(owner.address)).equal(initialSupply.sub(amount));
+                });
+
+                it('decrements allowance', async function () {
+                    expect(await cookToken.allowance(owner.address, burner.address)).equal(originalAllowance.sub(amount));
+                });
+
+                it('emits a transfer event', async function () {
+                    expect(cookToken.connect(burner).burnFrom(owner.address, amount)).emit(cookToken, 'Transfer').withArgs(owner.address, ethers.constants.AddressZero, amount);
+                });
+            }
+        });
+
+        describe('when the given amount is greater than the balance of the sender', function () {
+            const amount = initialSupply.add(1);
+
+            it('reverts', async function () {
+                await cookToken.connect(owner).approve(burner.address, amount);
+                expect(cookToken.connect(burner).burnFrom(owner.address, amount)).revertedWith('ERC20: burn amount exceeds balance');
+            });
+        });
+
+        describe('when the given amount is greater than the allowance', function () {
+            const allowance = ethers.utils.parseEther('50');
+
+            it('reverts', async function () {
+                await cookToken.connect(owner).approve(burner.address, allowance);
+                expect(cookToken.connect(burner).burnFrom(owner.address, allowance.add(1)))
+            });
+        });
+    });
+
     describe('minting', function () {
         it('deployer can mint tokens', async function () {
             expect(cookToken.mint(await other.getAddress(), amount)).to.emit(cookToken, 'Transfer').withArgs(ethers.constants.AddressZero, await other.getAddress(), amount);
