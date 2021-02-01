@@ -457,6 +457,50 @@ describe("CookToken", () => {
         });
     });
 
+    describe('_burn', function () {
+        let initialHolder: SignerWithAddress;
+        const ZERO_ADDRESS = ethers.constants.AddressZero;
+        beforeEach('before', async function () {
+            initialHolder = initialTokenHolder;
+        });
+
+
+        it('rejects a null account', async function () {
+            expect(cookToken.connect(ZERO_ADDRESS).burn( 1)).revertedWith('ERC20: burn from the zero address');
+        });
+
+        describe('for a non zero account', function () {
+            it('rejects burning more than balance', async function () {
+                expect(cookToken.connect(initialTokenHolder).burn(initialSupply.add(1))).revertedWith('ERC20: burn amount exceeds balance');
+            });
+
+            const describeBurn = function (description: string, amount: any) {
+                describe(description, function () {
+                    beforeEach('burning', async function () {
+                        await cookToken.connect(initialTokenHolder).burn(amount);
+                    });
+
+                    it('decrements totalSupply', async function () {
+                        const expectedSupply = initialSupply.sub(amount);
+                        expect(await cookToken.totalSupply()).equal(expectedSupply);
+                    });
+
+                    it('decrements initialHolder balance', async function () {
+                        const expectedBalance = initialSupply.sub(amount);
+                        expect(await cookToken.balanceOf(initialHolder.address)).equal(expectedBalance);
+                    });
+
+                    it('emits Transfer event', async function () {
+                        expect(cookToken.connect(initialHolder).burn(amount)).emit(cookToken, 'Transfer').withArgs(initialHolder.address, ZERO_ADDRESS);
+                    });
+                });
+            };
+
+            describeBurn('for entire balance', initialSupply);
+            describeBurn('for less amount than balance', initialSupply.sub(1));
+        });
+    });
+
     describe('minting', function () {
         it('deployer can mint tokens', async function () {
             expect(cookToken.mint(await other.getAddress(), amount)).to.emit(cookToken, 'Transfer').withArgs(ethers.constants.AddressZero, await other.getAddress(), amount);
