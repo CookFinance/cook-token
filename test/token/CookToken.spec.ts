@@ -639,4 +639,31 @@ describe("CookToken", () => {
             expect(await cookToken.balanceOf(await other.getAddress())).to.equal('1');
         });
     });
+
+    describe('pausable token', function () {
+        describe('transfer', function () {
+            it('allows to transfer when unpaused', async function () {
+                await cookToken.connect(initialTokenHolder).transfer(other.address, initialSupply);
+
+                expect(await cookToken.balanceOf(initialTokenHolder.address)).equal(0);
+                expect(await cookToken.balanceOf(other.address)).equal(initialSupply);
+            });
+
+            it('allows to transfer when paused and then unpaused', async function () {
+                await cookToken.pause();
+                await cookToken.unpause();
+
+                await cookToken.connect(initialTokenHolder).transfer(other.address, initialSupply);
+
+                expect(await cookToken.balanceOf(initialTokenHolder.address)).equal(0);
+                expect(await cookToken.balanceOf(other.address)).equal(initialSupply);
+            });
+
+            it('reverts when trying to transfer when paused', async function () {
+                await cookToken.pause();
+
+                expect(cookToken.connect(initialTokenHolder).transfer(other.address, initialSupply)).revertedWith('ERC20Pausable: token transfer while paused');
+            });
+        });
+    });
 });
