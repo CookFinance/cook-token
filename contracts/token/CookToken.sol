@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.6.0 <0.8.0;
+pragma solidity 0.6.2;
 
 import "../access/AccessControlUpgradeable.sol";
 import "../GSN/ContextUpgradeable.sol";
@@ -24,12 +24,17 @@ import "../proxy/Initializable.sol";
  * and pauser roles to other accounts.
  */
 contract CookToken is Initializable, ContextUpgradeable, AccessControlUpgradeable, ERC20BurnableUpgradeable, ERC20PausableUpgradeable {
-    function initialize(address initialTokenHolder) public virtual initializer {
-        __ERC20PresetMinterPauser_init("Cook Token", "COOK");
-        mint(initialTokenHolder, 10_000_000_000e18);
-    }
+
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+
+    /**
+     * @dev Initialize the token name and symbol. Mint 10 billion COOK token to `to`.
+     */
+    function initialize(address initialTokenHolder) external initializer {
+        __ERC20PresetMinterPauser_init("Cook Token", "COOK");
+        _mint(initialTokenHolder, 10_000_000_000e18);
+    }
 
     /**
      * @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
@@ -44,10 +49,10 @@ contract CookToken is Initializable, ContextUpgradeable, AccessControlUpgradeabl
         __ERC20Burnable_init_unchained();
         __Pausable_init_unchained();
         __ERC20Pausable_init_unchained();
-        __ERC20PresetMinterPauser_init_unchained(name, symbol);
+        __ERC20PresetMinterPauser_init_unchained();
     }
 
-    function __ERC20PresetMinterPauser_init_unchained(string memory name, string memory symbol) internal initializer {
+    function __ERC20PresetMinterPauser_init_unchained() internal initializer {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
         _setupRole(MINTER_ROLE, _msgSender());
@@ -63,7 +68,7 @@ contract CookToken is Initializable, ContextUpgradeable, AccessControlUpgradeabl
      *
      * - the caller must have the `MINTER_ROLE`.
      */
-    function mint(address to, uint256 amount) public virtual {
+    function mint(address to, uint256 amount) external {
         require(hasRole(MINTER_ROLE, _msgSender()), "CookToken: must have minter role to mint");
         _mint(to, amount);
     }
@@ -77,7 +82,7 @@ contract CookToken is Initializable, ContextUpgradeable, AccessControlUpgradeabl
      *
      * - the caller must have the `PAUSER_ROLE`.
      */
-    function pause() public virtual {
+    function pause() external {
         require(hasRole(PAUSER_ROLE, _msgSender()), "CookToken: must have pauser role to pause");
         _pause();
     }
@@ -91,12 +96,12 @@ contract CookToken is Initializable, ContextUpgradeable, AccessControlUpgradeabl
      *
      * - the caller must have the `PAUSER_ROLE`.
      */
-    function unpause() public virtual {
+    function unpause() external {
         require(hasRole(PAUSER_ROLE, _msgSender()), "CookToken: must have pauser role to unpause");
         _unpause();
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual override(ERC20Upgradeable, ERC20PausableUpgradeable) {
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal override(ERC20Upgradeable, ERC20PausableUpgradeable) {
         super._beforeTokenTransfer(from, to, amount);
     }
     uint256[50] private __gap;
