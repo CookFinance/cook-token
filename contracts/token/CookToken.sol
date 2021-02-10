@@ -29,7 +29,7 @@ contract CookToken is Initializable, ContextUpgradeable, AccessControlUpgradeabl
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     /**
-     * @dev Initialize the token name and symbol. Mint 10 billion COOK token to `to`.
+     * @dev Initialize the token name and symbol. Mint 10 billion COOK token to `initialTokenHolder`.
      */
     function initialize(address initialTokenHolder) external initializer {
         __ERC20PresetMinterPauser_init("Cook Token", "COOK");
@@ -37,7 +37,8 @@ contract CookToken is Initializable, ContextUpgradeable, AccessControlUpgradeabl
     }
 
     /**
-     * @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
+     * @dev Initializes the contract in general - token name and symbol, the decimals and
+     * grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
      * account that deploys the contract.
      *
      * See {ERC20-constructor}.
